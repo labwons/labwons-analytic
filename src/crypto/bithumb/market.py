@@ -1,3 +1,5 @@
+if not "Ticker" in globals():
+    from src.crypto.bithumb.ticker import Ticker
 from collections import deque
 from pandas import DataFrame, Series
 from typing import Union
