@@ -35,5 +35,6 @@ jobs:
           architecture: 'x64'
 
     - name: Run script
+      working-directory: src
       run: |   
-        python src/bot/squeeze_expand.py
+        python bot/squeeze_expand.py
