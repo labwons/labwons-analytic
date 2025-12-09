@@ -94,16 +94,17 @@ class Market:
         """
         return self._fetch_tickers().join(self._fetch_warnings())
 
-    def update_baseline(self, period: str = 'd', *args, **kwargs):
+    def update_baseline(self, n:int=-1, period: str = 'd', *args, **kwargs):
         if self._log_: self._log_.info('UPDATE OHLCV BASELINE')
         objs = {}
-        for ticker in self.tickers.index:
+        loop = self.tickers.index if n == -1 else self.tickers.index[:n]
+        for ticker in loop:
             try:
                 objs[ticker] = Ticker(ticker).ohlcv(period=period, *args, **kwargs)
             except KeyError:
                 if self._log_: self._log_.info(f'>>> FAILED TO UPDATE OHLCV: {ticker}')
                 continue
         self._mem_.append(pd.concat(objs, axis=1).sort_index(ascending=True).tail(200))
-        if self._log_: self._log_.info('UPDATE OHLCV BASELINE SUCCEESS')
+        if self._log_: self._log_.info('UPDATE OHLCV BASELINE ... SUCCEESS')
         return
 

@@ -1,7 +1,7 @@
 if not "Indicator" in globals():
     from src.analysis.indicator import Indicator
 from datetime import datetime
-from pandas import DataFrame
+from pandas import DataFrame, Series
 from zoneinfo import ZoneInfo
 import pandas as pd
 
@@ -13,9 +13,13 @@ class Strategy(Indicator):
         lap = pd.to_datetime(datetime.now(ZoneInfo('Asia/Seoul'))).tz_localize(None)
         sig = sig[pd.to_datetime(sig.index) >= (lap - pd.Timedelta(hours=48))]
         sig.columns = [c.replace("KRW-", "") for c in sig.columns]
-        return sig.apply(lambda row: ','.join(sig.columns[row.notna()]), axis=1) \
-            .replace("", None) \
-            .dropna()
+        sig = sig.apply(lambda row: ','.join(sig.columns[row.notna()]), axis=1) \
+                 .replace("", None) \
+                 .dropna()
+        if isinstance(sig, Series):
+            sig = sig.to_frame(name='Detected')
+            sig.index.name = ''
+        return sig
 
     def squeeze_expand(
         self,

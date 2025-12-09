@@ -4,8 +4,8 @@ import logging, sys
 
 
 class Logger(logging.Logger):
-    _runtime = None
     _buffer = None
+    _format = f"%(asctime)s %(message)s"
 
     @classmethod
     def kst(cls, *args):
@@ -14,8 +14,9 @@ class Logger(logging.Logger):
     def __init__(self, name: str):
         super().__init__(name=name, level=logging.INFO)
         self.propagate = False
+
         formatter = logging.Formatter(
-            fmt=f"%(asctime)s %(message)s",
+            fmt=self._format,
             datefmt="%Y-%m-%d %H:%M:%S"
         )
         formatter.converter = self.kst
@@ -34,6 +35,20 @@ class Logger(logging.Logger):
 
     def __call__(self, msg: str):
         self.info(msg=msg)
+        return
+
+    @property
+    def formatter(self):
+        return self._format
+
+    @formatter.setter
+    def formatter(self, formatter:str):
+        self._format = formatter
+        if formatter.startswith("%(asctime)s") or formatter.lower() == "default":
+            formatter = logging.Formatter(fmt=formatter, datefmt="%Y-%m-%d %H:%M:%S")
+            formatter.converter = self.kst
+        for handler in self.handlers:
+            handler.setFormatter(logging.Formatter(fmt=formatter))
         return
 
     @property
