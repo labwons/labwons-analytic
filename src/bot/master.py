@@ -10,6 +10,7 @@ if not "Mail" in globals():
     from src.util.mailing import Mail
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import os
 
 
 TZ = ZoneInfo('Asia/Seoul')
@@ -20,6 +21,7 @@ DEBUG = False
 N = -1
 
 logger = Logger('BOT@v1')
+logger(f'RUN TYPE: {os.getenv("CRON", "30min")}')
 market = Market(logger=logger)
 market.update_baseline(n=N, period=TIMEUNIT, unit=INTERVAL, count=200)
 logger.clear()
