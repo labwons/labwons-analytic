@@ -21,8 +21,9 @@ strategy.install()
 signal = strategy.squeeze_expand()
 report = strategy.to_report(signal)
 
-diff = datetime.now(TZ) - pd.to_datetime(report.index[-1]).tz_localize(TZ)
-if TIMEUNIT != 'min' or (TIMEUNIT == 'min' and int(diff.total_seconds() / 60) <= INTERVAL):
+now = datetime.now(TZ)
+diff = now - pd.to_datetime(report.index[-2]).tz_localize(TZ)
+if TIMEUNIT != 'min' or (TIMEUNIT == 'min' and (int(diff.total_seconds() / 60) <= 2 * INTERVAL)):
 
     clock = datetime.now(TZ).strftime("%Y/%m/%d %H:%M")
     logger(f'□ 감지 시간: {report.index[-1].replace("-", "/").replace("T", " ")[:-3]}')
