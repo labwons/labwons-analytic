@@ -1,4 +1,4 @@
-name: Archiving
+name: BOT: Squeeze and Expand
 on:
   schedule:
     # ┌───────────── 분 (0 - 59)
