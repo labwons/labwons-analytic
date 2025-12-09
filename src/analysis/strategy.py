@@ -47,9 +47,23 @@ class Strategy(Indicator):
             raise KeyError
         return self['sig_squeeze_expand']
 
-# coins = Coins()
-# strategy = Strategy(coins.baseline)
-# strategy.install()
-# strategy.squeeze_expand()
-# strategy.to_report(strategy['sig_squeeze_expand'])
+    def turn_around(
+        self,
+        window:int=20
+    ):
+        # 턴 어라운드 전략
+        self['_below_mid'] = (self['close'] <= self['mid']).astype(int)
+        self['_below_cnt'] = self['_below_mid'].rolling(window).sum()
+        self['_mid_close_gap'] = self['mid'] - self['close']
+
+        self['sig_turn_around'] = (
+            (self['_below_cnt'] >= 0.9 * window) &
+            (self['_mid_close_gap'] == self['_mid_close_gap'].rolling(window).min()) &
+            (self['_mid_close_gap'] <= 0)
+        ).astype(int).replace(0, None)
+
+        del self['_below_mid']
+        del self['_below_cnt']
+        del self['_mid_close_gap']
+        return self['sig_turn_around']
 

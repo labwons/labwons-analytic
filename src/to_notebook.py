@@ -95,7 +95,7 @@ if __name__ == "__main__":
         "bithumb/market.py",
         "indicator.py",
         "strategy.py",
-        "squeeze_expand.py"
+        "master.py"
 
     ]
     root = os.path.dirname(os.path.dirname(__file__))

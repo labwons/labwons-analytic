@@ -108,6 +108,8 @@ class Ticker:
             query = f'/candles/{period}?market={self.ticker}&count={kwargs.get("count", 200)}'
 
         data = self._fetch_(query)
+        if isinstance(data, Series):
+            raise KeyError
         cols = {k: v for k, v in self.rename.items() if k in data.columns}
         data = data.rename(columns=cols)[cols.values()]
         data = data.set_index(keys='datetime')
