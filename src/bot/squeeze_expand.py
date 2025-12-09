@@ -31,28 +31,16 @@ if TIMEUNIT != 'min' or (TIMEUNIT == 'min' and (int(diff.total_seconds() / 60) <
     for ticker in str(report.values[-1]).split(","):
         coin = Ticker(ticker=f'KRW-{ticker}')
         snap = coin.snapShot()
-        logger(f'□ TICKER: {ticker}')
-        logger(f'  - LINK: https://m.bithumb.com/react/trade/chart/{ticker}-KRW')
+        logger(f'□ TICKER: <a href="https://m.bithumb.com/react/trade/chart/{ticker}-KRW">{ticker}</a>')
         logger(f'  - 현재가: {snap["trade_price"]}원')
         logger(f'  - 등락률: {100 * snap["signed_change_rate"]:.2f}%')
         logger(f'  - 거래대금: {snap["acc_trade_price_24h"] / 1e+8:.2f}억원')
 
-    text = []
-    for line in str(logger.stream).splitlines():
-        line = line[20:]
-        if "TICKER" in line:
-            ticker = line[line.find(":") + 2:]
-            url = f'https://m.bithumb.com/react/trade/chart/{ticker}-KRW'
-            line = line.replace(": ", f': <a href="{url}">') + "</a>"
-        if "LINK" in line:
-            continue
-        text.append(line)
-
-    stream = f"""<!doctype html><html><body><p>{"<br>".join(text)}</p>{report.to_html()}</body></html>"""
+    html = "<br>".join([l[20:] for l in str(logger.stream).splitlines()])
     mail = Mail()
     mail.Subject = f'TRADER@v1 ON {clock}'
     mail.To = 'jhlee_0319@naver.com'
-    mail.content = stream
+    mail.content = f"""<!doctype html><html><body><p>{html}</p>{report.to_html()}</body></html>"""
     mail.send("html", "utf-8")
 
 else:
