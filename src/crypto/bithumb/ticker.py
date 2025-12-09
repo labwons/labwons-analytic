@@ -103,9 +103,9 @@ class Ticker:
         period = {'d': 'days', 'min': 'minutes', 'w': 'weeks', 'm': 'months'}[period.lower()]
         if period == 'minutes':
             unit = args[0] if args else kwargs.get("unit", 60)
-            query = f'/candles/{period}/{unit}?market={self.ticker}&count={kwargs.get('count', 200)}'
+            query = f'/candles/{period}/{unit}?market={self.ticker}&count={kwargs.get("count", 200)}'
         else:
-            query = f'/candles/{period}?market={self.ticker}&count={kwargs.get('count', 200)}'
+            query = f'/candles/{period}?market={self.ticker}&count={kwargs.get("count", 200)}'
 
         data = self._fetch_(query)
         cols = {k: v for k, v in self.rename.items() if k in data.columns}
