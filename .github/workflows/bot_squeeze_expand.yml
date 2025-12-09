@@ -37,4 +37,5 @@ jobs:
     - name: Run script
       working-directory: src
       run: |   
+        export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}
         python bot/squeeze_expand.py
