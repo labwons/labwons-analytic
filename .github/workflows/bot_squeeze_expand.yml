@@ -1,4 +1,4 @@
-name: BOT: Squeeze and Expand
+name: BOT-Squeeze and Expand
 on:
   schedule:
     # ┌───────────── 분 (0 - 59)
