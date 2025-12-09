@@ -1,0 +1,39 @@
+name: Archiving
+on:
+  schedule:
+    # ┌───────────── 분 (0 - 59)
+    # │ ┌───────────── 시 (0 - 23), UTI
+    # │ │ ┌───────────── 일 (1 - 31)
+    # │ │ │ ┌───────────── 월 (1 - 12)
+    # │ │ │ │ ┌───────────── 요일 (0 - 7) (0과 7은 일요일)
+    # │ │ │ │ │
+    # * * * * *
+    # *: 모든 값
+    # ,: 여러 값 지정
+    # -: 범위 지정
+    # /: 간격 지정
+    - cron: '25 * * * *'
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+
+jobs:
+  run-script:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+          python-version: '3.11'
+          architecture: 'x64'
+
+    - name: Run script
+      run: |   
+        python src/bot/squeeze_expand.py
