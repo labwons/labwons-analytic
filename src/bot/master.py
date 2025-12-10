@@ -32,7 +32,7 @@ strategy.install()
 
 for name, signal in [
     ("Squeeze & Expand", strategy.squeeze_expand()),
-    ("Turn Around", strategy.turn_around())
+    ("Up Trend Zone", strategy.up_trend())
 ]:
     report = strategy.to_report(signal)
     if DEBUG or report.index[-1] in [timespan[-1], timespan[-2]]:
@@ -52,6 +52,8 @@ for name, signal in [
             logger(f'---')
 
         SENDMAIL = True
+        if DEBUG:
+            print(report)
 
 if SENDMAIL:
     html = str(logger.stream) \
@@ -61,7 +63,6 @@ if SENDMAIL:
     # table = report.to_html(classes="styled-table", border=0)
     mail = Mail()
     mail.Subject = f'TRADER@v1 ON {datetime.now(TZ).strftime("%Y/%m/%d %H:%M")}'
-    mail.To = 'jhlee_0319@naver.com'
     mail.content = f"""
     <!doctype html>
     <html>    
@@ -82,7 +83,13 @@ if SENDMAIL:
         </body>
     </html>
     """
-    mail.send("html", "utf-8")
+    for user in [
+        "jhlee_0319@naver.com",
+        "ghost3009@naver.com"
+    ]:
+        mail.To = user
+        mail.send("html", "utf-8")
 
 else:
     logger('NO SIGNALS DETECTED ... SYSTEM ABORT')
+

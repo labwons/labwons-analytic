@@ -23,47 +23,39 @@ class Strategy(Indicator):
 
     def squeeze_expand(
         self,
-        width_mode: str = 'min',
-        width_window: int = 7,
-        volume_window: int = 7
+        window_width:int=100,
+        width_threshold:float=0.2,
+        window_volume:int=20,
     ):
-        # 밴드 폭 전략
-        # @width_mode == 'min':
-        #     @width_window에 대해 최소 값인 경우
-        #     * 단기 가격 변동성을 고려할 때 사용
-        # @width_mode == 'lower':
-        #     @width_rank 보다 작은 경우
-        #     * 중자아기 가격 변동성을 고려할 때 사용
-        if width_mode == 'min':
-            self['sig_squeeze_expand'] = (
-                (self['bb_width'] == self['bb_width'].rolling(width_window).min()) &
-                (self['close'] >= self['bb_upper']) &
-                ((self['close'] - self['open']) >= (self['bb_upper'] - self['mid'])) &
-                (self['volume'] >= self['volume'].rolling(volume_window).mean())
-            ).astype(int).replace(0, None)
-        elif width_mode == 'lower':
-            pass
-        else:
-            raise KeyError
-        return self['sig_squeeze_expand']
+        # 변동성 확대 국면 파악
+        self['bb_width_pct'] = self['bb_width'] \
+                               .rolling(window=window_width) \
+                               .apply(lambda x:Series(x).rank(pct=True).iloc[-1], raw=False)
+        self['bb_squeeze'] = self['bb_width_pct'] < width_threshold
+        self['bb_squeeze_release'] = self['bb_squeeze'].shift(1) & (~self['bb_squeeze'])
+        self['bb_breakout'] = self['close'] > self['bb_upper']
+        self['volume_spike'] = self['volume'] > self['volume'].rolling(window_volume).mean()
+        self['sig_squeeze_expand'] = (self['bb_squeeze_release'] & self['bb_breakout'] & self['volume_spike'])
 
-    def turn_around(
+        del self['bb_width_pct']
+        del self['bb_squeeze']
+        del self['bb_squeeze_release']
+        del self['bb_breakout']
+        del self['volume_spike']
+        return self['sig_squeeze_expand'].astype(int).replace(0, None)
+
+    def up_trend(
         self,
-        window:int=20
+        window:int=3
     ):
-        # 턴 어라운드 전략
-        self['_below_mid'] = (self['close'] <= self['mid']).astype(int)
-        self['_below_cnt'] = self['_below_mid'].rolling(window).sum()
-        self['_mid_close_gap'] = self['mid'] - self['close']
+        # 상승 추세 Zone 파악
+        self['bb_in_zone'] = (self['close'] >= self['tr_upper']) & (self['close'] <= self['bb_upper'])
+        self['bb_in_zone_window'] = self['bb_in_zone'].rolling(window).sum() == window
+        self['bb_out_zone'] = self['bb_in_zone'].shift(window) == False
+        self['sig_up_trend'] = self['bb_in_zone_window'] & self['bb_out_zone']
 
-        self['sig_turn_around'] = (
-            (self['_below_cnt'] >= 0.9 * window) &
-            (self['_mid_close_gap'] == self['_mid_close_gap'].rolling(window).min()) &
-            (self['_mid_close_gap'] <= 0)
-        ).astype(int).replace(0, None)
-
-        del self['_below_mid']
-        del self['_below_cnt']
-        del self['_mid_close_gap']
-        return self['sig_turn_around']
+        del self['bb_in_zone']
+        del self['bb_in_zone_window']
+        del self['bb_out_zone']
+        return self['sig_up_trend'].astype(int).replace(0, None)
 
