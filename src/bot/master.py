@@ -21,7 +21,7 @@ DEBUG = False
 N = -1
 
 logger = Logger('BOT@v1')
-logger(f'RUN TYPE: {os.getenv("CRON", "30min")}')
+logger(f'RUN TYPE: {os.getenv("github_event", None)}')
 market = Market(logger=logger)
 market.update_baseline(n=N, period=TIMEUNIT, unit=INTERVAL, count=200)
 logger.clear()
