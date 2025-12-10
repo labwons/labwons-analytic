@@ -63,6 +63,7 @@ if SENDMAIL:
     # table = report.to_html(classes="styled-table", border=0)
     mail = Mail()
     mail.Subject = f'TRADER@v1 ON {datetime.now(TZ).strftime("%Y/%m/%d %H:%M")}'
+    mail.To = 'jhlee_0319@naver.com'
     mail.content = f"""
     <!doctype html>
     <html>    
@@ -83,12 +84,13 @@ if SENDMAIL:
         </body>
     </html>
     """
-    for user in [
-        "jhlee_0319@naver.com",
-        "ghost3009@naver.com"
-    ]:
-        mail.To = user
-        mail.send("html", "utf-8")
+    mail.send('html', 'utf-8')
+    # for user in [
+    #     "jhlee_0319@naver.com",
+    #     "ghost3009@naver.com"
+    # ]:
+    #     mail.To = user
+    #     mail.send("html", "utf-8")
 
 else:
     logger('NO SIGNALS DETECTED ... SYSTEM ABORT')
