@@ -35,14 +35,8 @@ jobs:
         else
           echo "github_event=${EVENT_NAME}" >> $GITHUB_ENV
 
-    - name: Show github_event
-      run: echo "github_event=$github_event"
-
     - name: Checkout repository
       uses: actions/checkout@v4
-      
-    - name: Show cron type
-      run: echo "CRON=$CRON"
 
     - name: Set up Python
       uses: actions/setup-python@v5
