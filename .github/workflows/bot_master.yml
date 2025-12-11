@@ -15,13 +15,22 @@ on:
 #    - cron: '0 * * * *'    # 매 정시
 #    - cron: '30 * * * *'   # 매 30분
     - cron: '*/30 6-23 * * *' # KST 15:00 ~ 익일 08:59  (UTC 06:00 ~ 23:59), 30분 간격
-
   workflow_dispatch:
-
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bot_master.yml
 
 permissions:
   contents: write
   id-token: write
+
+
+concurrency:
+  group: run-workflow
+  cancel-in-progress: true
+
 
 jobs:
   run-script:
@@ -59,3 +68,20 @@ jobs:
       run: |   
         export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}
         python bot/master.py
+
+    - name: Set Git Configuration
+      run: |
+        git config --global user.name 'BOT@v1'
+        git config --global user.email 'snob.labwons@gmail.com'        
+
+    - name: Commit and Push Changes to Archive
+      working-directory: ./labwons-analytic
+      run : |
+        git add .
+        TIMESTAMP=$(date)
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "BOT@v1 ACTION on $TIMESTAMP"
+          git push
+        fi
