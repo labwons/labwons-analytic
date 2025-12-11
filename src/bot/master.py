@@ -14,6 +14,10 @@ import os
 
 
 TZ = ZoneInfo('Asia/Seoul')
+EVENT = os.getenv('EVENT_NAME', None)
+TIMER = os.getenv('CRON_TIMER', '')
+
+
 TIMEUNIT = 'min'
 INTERVAL = 30
 SENDMAIL = False
@@ -21,7 +25,7 @@ DEBUG = False
 N = -1
 
 logger = Logger('BOT@v1')
-logger(f'RUN TYPE: {os.getenv("github_event", None)}')
+logger(f'RUN TYPE: {EVENT} @{TIMER}')
 market = Market(logger=logger)
 market.update_baseline(n=N, period=TIMEUNIT, unit=INTERVAL, count=200)
 logger.clear()
