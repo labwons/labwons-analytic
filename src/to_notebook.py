@@ -95,6 +95,8 @@ if __name__ == "__main__":
         "bithumb/market.py",
         "indicator.py",
         "strategy.py",
+        "schema.py",
+        "tradingbook.py",
         "master.py"
 
     ]

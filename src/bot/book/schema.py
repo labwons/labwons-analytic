@@ -9,11 +9,12 @@ class Schema(DataFrame):
         'status': {'index': False, 'dtype': str},
         'detected_signal': {'index': False, 'dtype': str},
         'detected_time': {'index': False, 'dtype': datetime},
+        'detected_price': {'index': False, 'dtype': float},
         'signal_confirmed_time': {'index': False, 'dtype': datetime},
         'bid_price': {'index': False, 'dtype': float},
         'execution_price': {'index': False, 'dtype': float},
-        'yield': {'index': False, 'dtype': float},
-        'executed_yield': {'index': False, 'dtype': float},
+        'yield_from_detected': {'index': False, 'dtype': float},
+        'yield_from_executed': {'index': False, 'dtype': float},
     }
 
     def __init__(self):

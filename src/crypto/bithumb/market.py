@@ -3,7 +3,6 @@ if not "Ticker" in globals():
 from collections import deque
 from pandas import DataFrame, Series
 from typing import Union
-from logging import Logger as Log
 import pandas as pd
 import requests
 
@@ -21,9 +20,8 @@ class Market:
         'end_date': 'warning_end'
     }
 
-    def __init__(self, logger: Union[Log, None] = None):
+    def __init__(self):
         self._mem_ = deque(maxlen=5)
-        self._log_ = logger
         return
 
     def __iter__(self):
@@ -31,7 +29,7 @@ class Market:
             yield ticker
 
     def _repr_html_(self):
-        return self.tickers._repr_html_()
+        return getattr(self.tickers, '_repr_html_')()
 
     @classmethod
     def _fetch_(cls, url: str, **kwargs) -> Union[DataFrame, Series]:
@@ -94,17 +92,15 @@ class Market:
         """
         return self._fetch_tickers().join(self._fetch_warnings())
 
-    def update_baseline(self, n:int=-1, period: str = 'd', *args, **kwargs):
-        if self._log_: self._log_.info('UPDATE OHLCV BASELINE')
+    def update_baseline(self, period: str = 'd', *args, **kwargs):
+        fail = []
         objs = {}
-        loop = self.tickers.index if n == -1 else self.tickers.index[:n]
-        for ticker in loop:
+        for ticker in self.tickers.index:
             try:
                 objs[ticker] = Ticker(ticker).ohlcv(period=period, *args, **kwargs)
             except KeyError:
-                if self._log_: self._log_.info(f'>>> FAILED TO UPDATE OHLCV: {ticker}')
+                fail.append(ticker)
                 continue
         self._mem_.append(pd.concat(objs, axis=1).sort_index(ascending=True).tail(200))
-        if self._log_: self._log_.info('UPDATE OHLCV BASELINE ... SUCCEESS')
-        return
+        return fail
 
