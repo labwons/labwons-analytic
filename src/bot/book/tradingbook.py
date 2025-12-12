@@ -1,5 +1,7 @@
 if not "Ticker" in globals():
     from src.crypto.bithumb.ticker import Ticker
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pandas import DataFrame
 from numpy import nan
 import pandas as pd
@@ -22,7 +24,8 @@ SCHEMA = {
     'signaled_price': {'index': False, 'dtype': float, 'default': nan},
     'signaled_amount': {'index': False, 'dtype': float, 'default': nan},
     'signaled_volume': {'index': False, 'dtype': float, 'default': nan},
-    'yield_performed': {'index': False, 'dtype': float, 'default': nan},
+    'yield_confirmed': {'index': False, 'dtype': float, 'default': nan},
+    'yield_elapsed': {'index': False, 'dtype': float, 'default': nan},
     'yield_1h_from_detected': {'index': False, 'dtype': float, 'default': nan},
     'yield_4h_from_detected': {'index': False, 'dtype': float, 'default': nan},
     'yield_12h_from_detected': {'index': False, 'dtype': float, 'default': nan},
@@ -98,15 +101,20 @@ class TradingBook:
         return
 
     def update(self):
+        kst = datetime.now(tz=ZoneInfo('Asia/Seoul'))
         for ticker in self.index:
             coin = Ticker(ticker=ticker)
+            time = datetime.strptime(self.loc[ticker, 'signaled_time'], '%Y-%m-%dT%H:%M:%S')
             self.loc[ticker, 'current_price'] = coin['trade_price']
             self.loc[ticker, 'current_amount'] = coin['acc_trade_price_24h']
             self.loc[ticker, 'current_volume'] = coin['acc_trade_volume_24h']
-        # self['yield_from_detected'] = (self['current_price'] - self['detected_price']) / self['detected_price'] * 100
-        # self['yield_from_executed'] = (self['current_price'] - self['execution_price']) / self['execution_price'] * 100
+            # self.loc[ticker]
+        self['yield_confirmed'] = (self['sell_price'] - self['buy_price']) / self['buy_price'] * 100
+        self['yield_elapsed'] = (self['current_price'] - self['signaled_price']) / self['signaled_price'] * 100
         return
 
     def save(self):
-        self[list(SCHEMA.keys())].to_json(self._filepath)
+        keys = list(SCHEMA.keys())
+        keys.remove('ticker')
+        self[keys].to_json(self._filepath)
         return
