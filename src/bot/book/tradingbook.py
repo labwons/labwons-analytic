@@ -69,7 +69,7 @@ class TradingBook:
             if not os.path.isfile(self._filepath):
                 self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
             else:
-                self.book = pd.read_json(self._filepath)
+                self.book = pd.read_json(self._filepath, orient="index")
         return
 
     def __repr__(self):
@@ -116,5 +116,5 @@ class TradingBook:
     def save(self):
         keys = list(SCHEMA.keys())
         keys.remove('ticker')
-        self[keys].to_json(self._filepath)
+        self[keys].to_json(self._filepath, orient="index")
         return
