@@ -9,22 +9,31 @@ import os
 SCHEMA = {
     'ticker': { 'index': True, 'dtype': str , 'default': ''},
     'status': {'index': False, 'dtype': str, 'default': ''},
-    'detected_signal': {'index': False, 'dtype': str, 'default': ''},
-    'detected_time': {'index': False, 'dtype': str, 'default': ''},
-    'market_time': {'index': False, 'dtype': str, 'default': ''},
     'current_price': {'index': False, 'dtype': float, 'default': nan},
     'current_amount': {'index': False, 'dtype': float, 'default': nan},
     'current_volume': {'index': False, 'dtype': float, 'default': nan},
-    'detected_price': {'index': False, 'dtype': float, 'default': nan},
-    'detected_amount': {'index': False, 'dtype': float, 'default': nan},
-    'detected_volume': {'index': False, 'dtype': float, 'default': nan},
     'buy_price': {'index': False, 'dtype': float, 'default': nan},
+    'buy_time': {'index': False, 'dtype': str, 'default': ''},
     'sell_price': {'index': False, 'dtype': float, 'default': nan},
-    'yield_from_detected': {'index': False, 'dtype': float, 'default': nan},
-    'yield_from_executed': {'index': False, 'dtype': float, 'default': nan},
+    'sell_time': {'index': False, 'dtype': str, 'default': ''},
+    'signal': {'index': False, 'dtype': str, 'default': ''},
+    'signaled_time': {'index': False, 'dtype': str, 'default': ''},
+    'signal_elapsed_time': {'index': False, 'dtype': float, 'default': nan},
+    'signaled_price': {'index': False, 'dtype': float, 'default': nan},
+    'signaled_amount': {'index': False, 'dtype': float, 'default': nan},
+    'signaled_volume': {'index': False, 'dtype': float, 'default': nan},
+    'yield_performed': {'index': False, 'dtype': float, 'default': nan},
+    'yield_1h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_4h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_12h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_24h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_36h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_48h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_60h_from_detected': {'index': False, 'dtype': float, 'default': nan},
+    'yield_72h_from_detected': {'index': False, 'dtype': float, 'default': nan},
 }
 STATUS = [
-    "WATCHING",
+    "WATCH",
     "HOLD",
     "BID",
     "ASK",
@@ -94,14 +103,10 @@ class TradingBook:
             self.loc[ticker, 'current_price'] = coin['trade_price']
             self.loc[ticker, 'current_amount'] = coin['acc_trade_price_24h']
             self.loc[ticker, 'current_volume'] = coin['acc_trade_volume_24h']
-        self['yield_from_detected'] = (self['current_price'] - self['detected_price']) / self['detected_price'] * 100
-        self['yield_from_executed'] = (self['current_price'] - self['execution_price']) / self['execution_price'] * 100
+        # self['yield_from_detected'] = (self['current_price'] - self['detected_price']) / self['detected_price'] * 100
+        # self['yield_from_executed'] = (self['current_price'] - self['execution_price']) / self['execution_price'] * 100
         return
 
     def save(self):
-        self.to_json(self._filepath)
+        self[list(SCHEMA.keys())].to_json(self._filepath)
         return
-
-if __name__ == "__main__":
-    book = TradingBook()
-    print(book)

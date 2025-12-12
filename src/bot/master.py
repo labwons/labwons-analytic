@@ -61,13 +61,12 @@ for name, signal in [
 
         book.append(
             ticker=ticker,
-            status='WATCHING',
-            detected_signal=name,
-            detected_time=kst.strftime("%Y-%m-%d %H:%M:%S"),
-            detected_price=coin['trade_price'],
-            detected_amount=coin['acc_trade_price_24h'],
-            detected_volume=coin['acc_trade_volume_24h'],
-            market_time=market.baseline.index[-1],
+            status='WATCH',
+            signal=name,
+            signaled_time=market.baseline.index[-1],
+            signaled_price=coin['trade_price'],
+            signaled_amount=coin['acc_trade_price_24h'],
+            signaled_volume=coin['acc_trade_volume_24h'],
         )
     send = True
 
