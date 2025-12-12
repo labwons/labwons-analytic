@@ -21,7 +21,7 @@ kst = datetime.now(ZoneInfo('Asia/Seoul'))
 
 logger = Logger('BOT@v1')
 logger.formatter = "%(message)s"
-logger(f"RUNS ON: {os.getenv('EVENT_NAME', "LOCAL").upper()}")
+logger(f"RUNS ON: {os.getenv('EVENT_NAME', 'LOCAL').upper()}")
 
 # BASELINE UPDATE
 tic = perf_counter()

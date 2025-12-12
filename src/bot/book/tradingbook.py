@@ -39,11 +39,25 @@ class TradingBook:
         _basepath:str = os.getcwd()
     _filepath:str = os.path.join(_basepath,_filename)
 
-    def __init__(self):
-        if not os.path.isfile(self._filepath):
-            self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
+    def __init__(self, readonly:bool=False):
+        if readonly:
+            self.book = pd.read_json(
+                "https://raw.githubusercontent.com"
+                "/labwons"
+                "/labwons-analytic"
+                "/refs"
+                "/heads"
+                "/main"
+                "/src"
+                "/bot"
+                "/book"
+                "/book.json"
+            )
         else:
-            self.book = pd.read_json(self._filepath)
+            if not os.path.isfile(self._filepath):
+                self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
+            else:
+                self.book = pd.read_json(self._filepath)
         return
 
     def __repr__(self):
