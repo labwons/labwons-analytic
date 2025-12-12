@@ -1,3 +1,7 @@
+if not "constrain" in globals():
+    from src.util.deco import constrain
+if not "Logger" in globals():
+    from src.util.logger import Logger
 from pandas import DataFrame, Series
 from typing import Union
 import pandas as pd
@@ -23,10 +27,16 @@ class Ticker:
 
     def __init__(self, ticker: str):
         self.ticker = ticker
+        self._snap = Series()
         return
 
     def __repr__(self):
-        return repr(self.snapShot())
+        return repr(self.snapShot)
+
+    def __getitem__(self, item):
+        if self._snap.empty:
+            self._snap = self.snapShot
+        return self._snap[item]
 
     @classmethod
     def _fetch_(cls, url:str, **kwargs) -> Union[DataFrame, Series]:
@@ -46,6 +56,7 @@ class Ticker:
                .json()
         return Series(resp[0], **kwargs) if len(resp) == 1 else DataFrame(resp, **kwargs)
 
+    @property
     def snapShot(self) -> Series:
         """
         market                               KRW-BTC
@@ -76,9 +87,13 @@ class Ticker:
         timestamp                      1764328741157
         Name: KRW-BTC, dtype: object
         """
-        return self._fetch_(f"/ticker?markets={self.ticker}", name=self.ticker)
+        self._snap = self._fetch_(f"/ticker?markets={self.ticker}", name=self.ticker)
+        return self._snap
 
-    def ohlcv(self, period: str = 'd', *args, **kwargs) -> DataFrame:
+    @constrain('1minutes', '3minutes', '5minutes', '10minutes',
+               '15minutes', '30minutes', '60minutes', '240minutes',
+               '1days', '1weeks', '1months')
+    def ohlcv(self, interval:str) -> DataFrame:
         """
                                  open	     high	      low	    close	      amount	     volume
         datetime
@@ -95,17 +110,14 @@ class Ticker:
         2025-12-04T11:00:00	138590000	139590000	138500000	139374000	4.618125e+09	33227210.66
         200 rows × 6 columns
 
-        :param period:
-        :param args:
-        :param kwargs:
+        :param interval:
+        :param count:
         :return:
         """
-        period = {'d': 'days', 'min': 'minutes', 'w': 'weeks', 'm': 'months'}[period.lower()]
-        if period == 'minutes':
-            unit = args[0] if args else kwargs.get("unit", 60)
-            query = f'/candles/{period}/{unit}?market={self.ticker}&count={kwargs.get("count", 200)}'
+        if interval.endswith('minutes'):
+            query = f'/candles/minutes/{interval.replace("minutes", "")}?market={self.ticker}&count=200'
         else:
-            query = f'/candles/{period}?market={self.ticker}&count={kwargs.get("count", 200)}'
+            query = f'/candles/{interval[1:]}?market={self.ticker}&count=200'
 
         data = self._fetch_(query)
         if isinstance(data, Series):
@@ -171,3 +183,12 @@ class Ticker:
         data['datetime'] = pd.to_datetime(base['timestamp'], unit='ms') + pd.Timedelta(hours=9)
         data['datetime'] = data['datetime'].dt.strftime("%Y-%m-%d %H:%M:%S")
         return data.set_index(keys='datetime')
+
+    def to_logger(self, logger:Logger):
+        ticker = self.ticker.replace('KRW-', '')
+        logger(f'TICKER: <a href="https://m.bithumb.com/react/trade/chart/{ticker}-KRW">{ticker}</a>')
+        logger(f'  - 현재가: {self["trade_price"]}원')
+        logger(f'  - 등락률: {100 * self["signed_change_rate"]:.2f}%')
+        logger(f'  - 거래대금: {self["acc_trade_price_24h"] / 1e+8:.2f}억원')
+        logger(f'---')
+        return

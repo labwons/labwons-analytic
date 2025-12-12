@@ -55,6 +55,12 @@ class Logger(logging.Logger):
     def stream(self) -> str:
         return self._buffer.getvalue()
 
+    def to_html(self):
+        return self.stream \
+               .replace("\n", "<br>") \
+               .replace("  -", f'{"&nbsp;" * 4}-') \
+               .replace("---", "<hr>")
+
     def clear(self):
         self._buffer.truncate(0)
         self._buffer.seek(0)

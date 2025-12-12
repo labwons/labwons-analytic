@@ -1,6 +1,5 @@
 if not "Ticker" in globals():
     from src.crypto.bithumb.ticker import Ticker
-from collections import deque
 from pandas import DataFrame, Series
 from typing import Union
 import pandas as pd
@@ -21,7 +20,8 @@ class Market:
     }
 
     def __init__(self):
-        self._mem_ = deque(maxlen=5)
+        self._baseline = DataFrame()
+        self._failures = []
         return
 
     def __iter__(self):
@@ -68,9 +68,17 @@ class Market:
 
     @property
     def baseline(self) -> DataFrame:
-        if not self._mem_:
-            self.update_baseline(period='min', unit=60)
-        return list(self._mem_)[-1]
+        if self._baseline.empty:
+            self._baseline = self.update_baseline(interval='60minutes')
+        return self._baseline
+
+    @baseline.setter
+    def baseline(self, baseline:DataFrame):
+        self._baseline = baseline
+
+    @property
+    def failures(self) -> list:
+        return self._failures
 
     @property
     def tickers(self) -> DataFrame:
@@ -92,15 +100,18 @@ class Market:
         """
         return self._fetch_tickers().join(self._fetch_warnings())
 
-    def update_baseline(self, period: str = 'd', *args, **kwargs):
-        fail = []
+    def update_baseline(self, interval: str) -> DataFrame:
         objs = {}
         for ticker in self.tickers.index:
             try:
-                objs[ticker] = Ticker(ticker).ohlcv(period=period, *args, **kwargs)
+                objs[ticker] = Ticker(ticker).ohlcv(interval)
             except KeyError:
-                fail.append(ticker)
+                self._failures.append(ticker)
                 continue
-        self._mem_.append(pd.concat(objs, axis=1).sort_index(ascending=True).tail(200))
-        return fail
+        self._baseline = pd.concat(objs, axis=1).sort_index(ascending=True).tail(200)
+        return self._baseline
+
+    def reset_failures(self):
+        self._failures = []
+        return
 

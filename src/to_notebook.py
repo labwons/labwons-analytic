@@ -19,7 +19,7 @@ def generate_cell(pys:List):
         py = py.replace("/", os.path.sep)
         path = [file for file in files if file.endswith(py)]
         if len(path) != 1:
-            raise FileExistsError()
+            raise FileExistsError(f'{py} Not Exist')
         path = path[0]
         part = path.replace(os.path.dirname(__file__), "")[1:]
         for n, elem in enumerate(part.split(os.path.sep), start=1):
@@ -89,13 +89,13 @@ def generate_notebook(pys:List, filename:str):
 
 if __name__ == "__main__":
     pys = [
+        "deco.py",
         "logger.py",
         "mailing.py",
         "bithumb/ticker.py",
         "bithumb/market.py",
         "indicator.py",
         "strategy.py",
-        "schema.py",
         "tradingbook.py",
         "master.py"
 

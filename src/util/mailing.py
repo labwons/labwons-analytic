@@ -30,6 +30,29 @@ class Mail(MIMEMultipart):
     def To(self, _to: str):
         self['To'] = _to
 
+    @classmethod
+    def to_html(cls, text: str) -> str:
+        return f"""
+<!doctype html>
+<html>    
+    <style>
+        .styled-table {{
+            border-collapse: collapse;
+            width: 100%;
+            text-align: right;
+        }}
+        .styled-table th, .styled-table td {{
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-weight: 500;
+        }}
+    </style>
+    <body>
+        <p>{text}</p>
+    </body>
+</html>
+"""
+
     def send(self, *args):
         self.attach(MIMEText(self.content, *args))
         with SMTP('smtp.gmail.com', 587) as server:
