@@ -1,6 +1,6 @@
 if not "Ticker" in globals():
     from src.crypto.bithumb.ticker import Ticker
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from pandas import DataFrame
 from numpy import nan
@@ -20,12 +20,12 @@ SCHEMA = {
     'sell_time': {'index': False, 'dtype': str, 'default': ''},
     'signal': {'index': False, 'dtype': str, 'default': ''},
     'signaled_time': {'index': False, 'dtype': str, 'default': ''},
-    'signal_elapsed_time': {'index': False, 'dtype': float, 'default': nan},
     'signaled_price': {'index': False, 'dtype': float, 'default': nan},
+    'signal_reported_price': {'index': False, 'dtype': float, 'default': nan},
     'signaled_amount': {'index': False, 'dtype': float, 'default': nan},
     'signaled_volume': {'index': False, 'dtype': float, 'default': nan},
     'yield_confirmed': {'index': False, 'dtype': float, 'default': nan},
-    'yield_elapsed': {'index': False, 'dtype': float, 'default': nan},
+    'yield_ongoing': {'index': False, 'dtype': float, 'default': nan},
     'yield_1h_from_detected': {'index': False, 'dtype': float, 'default': nan},
     'yield_4h_from_detected': {'index': False, 'dtype': float, 'default': nan},
     'yield_12h_from_detected': {'index': False, 'dtype': float, 'default': nan},
@@ -101,16 +101,23 @@ class TradingBook:
         return
 
     def update(self):
-        kst = datetime.now(tz=ZoneInfo('Asia/Seoul'))
         for ticker in self.index:
             coin = Ticker(ticker=ticker)
-            time = datetime.strptime(self.loc[ticker, 'signaled_time'], '%Y-%m-%dT%H:%M:%S')
-            self.loc[ticker, 'current_price'] = coin['trade_price']
-            self.loc[ticker, 'current_amount'] = coin['acc_trade_price_24h']
-            self.loc[ticker, 'current_volume'] = coin['acc_trade_volume_24h']
-            # self.loc[ticker]
-        self['yield_confirmed'] = (self['sell_price'] - self['buy_price']) / self['buy_price'] * 100
-        self['yield_elapsed'] = (self['current_price'] - self['signaled_price']) / self['signaled_price'] * 100
+            data = coin.ohlcv(interval='60minutes')
+
+            s_price = book.loc[ticker, 'signaled_price']
+            s_time = datetime.strptime(book.loc[ticker, 'signaled_time'], '%Y-%m-%dT%H:%M:%S')
+            for h in [1, 4, 12, 24, 36, 48, 60, 72]:
+                e_time = s_time + timedelta(hours=h)
+                if e_time.strftime('%Y-%m-%dT%H:%M:%S') not in data.index:
+                    continue
+                price_at_time = data.loc[e_time.strftime('%Y-%m-%dT%H:%M:%S'), 'close']
+                book.loc[ticker, f'yield_{h}h_from_detected'] = 100 * (price_at_time - s_price) / s_price
+
+            book.loc[ticker, 'current_price'] = curr = coin['trade_price']
+            book.loc[ticker, 'current_amount'] = data.iloc[-1]['amount']
+            book.loc[ticker, 'current_volume'] = data.iloc[-1]['volume']
+            book.loc[ticker, 'yield_ongoing'] = 100 * (curr - s_price) / s_price
         return
 
     def save(self):
@@ -118,3 +125,10 @@ class TradingBook:
         keys.remove('ticker')
         self[keys].to_json(self._filepath, orient="index")
         return
+
+if __name__ == "__main__":
+    from pandas import set_option
+    set_option('display.expand_frame_repr', False)
+
+    book = TradingBook()
+    print(book)

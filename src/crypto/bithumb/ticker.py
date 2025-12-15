@@ -90,9 +90,9 @@ class Ticker:
         self._snap = self._fetch_(f"/ticker?markets={self.ticker}", name=self.ticker)
         return self._snap
 
-    @constrain('1minutes', '3minutes', '5minutes', '10minutes',
-               '15minutes', '30minutes', '60minutes', '240minutes',
-               '1days', '1weeks', '1months')
+    # @constrain('1minutes', '3minutes', '5minutes', '10minutes',
+    #            '15minutes', '30minutes', '60minutes', '240minutes',
+    #            '1days', '1weeks', '1months')
     def ohlcv(self, interval:str) -> DataFrame:
         """
                                  open	     high	      low	    close	      amount	     volume
@@ -126,7 +126,7 @@ class Ticker:
         data = data.rename(columns=cols)[cols.values()]
         data = data.set_index(keys='datetime')
         data['volume'] = data['volume'] * 1e+6
-        return data
+        return data.sort_index(ascending=True)
 
     def execution(self, count: int = 100) -> DataFrame:
         """

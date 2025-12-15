@@ -23,6 +23,11 @@ def generate_cell(pys:List):
         path = path[0]
         part = path.replace(os.path.dirname(__file__), "")[1:]
         for n, elem in enumerate(part.split(os.path.sep), start=1):
+            source = []
+            for line in open(path, mode='r', encoding='utf-8').readlines():
+                if 'if __name__' in line:
+                    break
+                source.append(line)
             if elem.endswith('.py'):
                 cells.append({
                     "cell_type": "markdown",
@@ -38,7 +43,7 @@ def generate_cell(pys:List):
                     "id": generate_id(),
                     "metadata": {},
                     "outputs": {},
-                    "source": open(path, mode='r', encoding='utf-8').readlines()
+                    "source": source
                 })
             else:
                 if elem in marked:

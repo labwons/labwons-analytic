@@ -30,6 +30,7 @@ market.update_baseline(interval='60minutes')
 market_time = datetime.strptime(market.baseline.index[-1], "%Y-%m-%dT%H:%M:%S")
 if (market_time.hour > kst.hour) and (kst.minute < 45):
     market.baseline = market.baseline.iloc[:-1]
+    market_time = datetime.strptime(market.baseline.index[-1], "%Y-%m-%dT%H:%M:%S")
 for failed in market.failures:
     logger(f"⚠️  FAILED TICKER: {failed}")
 market.reset_failures()
@@ -59,17 +60,25 @@ for name, signal in [
         coin = Ticker(ticker=ticker)
         coin.to_logger(logger)
 
+        baseline = market.baseline[ticker].loc[detect.name]
+        signaled_price = baseline['close']
+        signal_reported_price = coin['trade_price']
+        if abs(signal_reported_price / signaled_price - 1) >= 0.02:
+            continue
+
         book.append(
             ticker=ticker,
             status='WATCH',
             signal=name,
-            signaled_time=market.baseline.index[-1],
-            signaled_price=coin['trade_price'],
-            signaled_amount=coin['acc_trade_price_24h'],
-            signaled_volume=coin['acc_trade_volume_24h'],
+            signaled_time=detect.name,
+            signaled_price=signaled_price,
+            signal_reported_price=signal_reported_price,
+            signaled_amount=baseline['amount'],
+            signaled_volume=baseline['volume'],
         )
     send = True
 
+book.update()
 book.save()
 
 # SEND E-MAIL
