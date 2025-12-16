@@ -70,6 +70,8 @@ class TradingBook:
                 self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
             else:
                 self.book = pd.read_json(self._filepath, orient="index")
+                if self.book.empty:
+                    self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
         return
 
     def __repr__(self):
