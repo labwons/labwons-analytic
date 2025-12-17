@@ -58,9 +58,10 @@ class Strategy(Indicator):
         self['_dd_height'] = self['_dd_min'] / self['_dd_max'] - 1
         self['_dd_recover'] = (self[basis] - self['_dd_min']) / (self['_dd_max'] - self['_dd_min'])
         self['_dd_rapid'] = (
-                (self['close'].pct_change(1) <= (drawdown_threshold / 3)) |
-                (self['close'].pct_change(drawdown_rapid) <= (drawdown_threshold / 2))
-        )
+                (self['close'].pct_change(1, fill_method=None) <= (drawdown_threshold / 3)) |
+                (self['close'].pct_change(drawdown_rapid, fill_method=None) <= (drawdown_threshold / 2))
+        ).astype(bool).fillna(False)
+        self['_dd_occur'] = self['_dd_rapid'].rolling(window).any()
 
         self['_is_macd_pos'] = self['macd_diff'] >= 0
         self['_macd_cross'] = (self['_is_macd_pos']) & (~self['_is_macd_pos'].shift(1).astype(bool))
@@ -68,7 +69,7 @@ class Strategy(Indicator):
         self['sig_drawdown_recover'] = (
             (self['_dd_height'] <= drawdown_threshold) &
             (self['_dd_recover'] <= drawdown_recover_threshold) &
-            self['_dd_rapid'] &
+            self['_dd_occur'] &
             self['_macd_cross']
         )
 
@@ -76,8 +77,10 @@ class Strategy(Indicator):
         del self['_dd_min']
         del self['_dd_height']
         del self['_dd_recover']
+        del self['_dd_rapid']
         del self['_is_macd_pos']
         del self['_macd_cross']
+        del self['_dd_occur']
 
         return self['sig_drawdown_recover'].astype(int).replace(0, None)
 
