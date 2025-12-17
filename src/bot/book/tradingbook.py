@@ -135,3 +135,7 @@ if __name__ == "__main__":
 
     book = TradingBook()
     print(book)
+
+    book.drop(inplace=True, index = book[book.loc[:,"signal"] == "Drawdown Recover"].index)
+    print(book)
+    book.save()

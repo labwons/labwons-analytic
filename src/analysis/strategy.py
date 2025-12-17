@@ -50,12 +50,17 @@ class Strategy(Indicator):
         basis:str='tp',
         window:int=36,
         drawdown_threshold:float=-0.1,
-        drawdown_recover_threshold:float=0.4,
+        drawdown_recover_threshold:float=0.3,
+        drawdown_rapid:int=3,
     ):
         self['_dd_max'] = self[basis].rolling(window=window).max()
         self['_dd_min'] = self[basis].rolling(window=window).min()
         self['_dd_height'] = self['_dd_min'] / self['_dd_max'] - 1
         self['_dd_recover'] = (self[basis] - self['_dd_min']) / (self['_dd_max'] - self['_dd_min'])
+        self['_dd_rapid'] = (
+                (self['close'].pct_change(1) <= (drawdown_threshold / 3)) |
+                (self['close'].pct_change(drawdown_rapid) <= (drawdown_threshold / 2))
+        )
 
         self['_is_macd_pos'] = self['macd_diff'] >= 0
         self['_macd_cross'] = (self['_is_macd_pos']) & (~self['_is_macd_pos'].shift(1).astype(bool))
@@ -63,6 +68,7 @@ class Strategy(Indicator):
         self['sig_drawdown_recover'] = (
             (self['_dd_height'] <= drawdown_threshold) &
             (self['_dd_recover'] <= drawdown_recover_threshold) &
+            self['_dd_rapid'] &
             self['_macd_cross']
         )
 

@@ -59,7 +59,8 @@ for name, signal in [
         basis='tp',
         window=36,
         drawdown_threshold=-0.1,
-        drawdown_recover_threshold=0.4,
+        drawdown_recover_threshold=0.3,
+        drawdown_rapid=3,
     )),
 ]:
     detect = signal.iloc[-1].dropna()
