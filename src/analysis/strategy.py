@@ -60,8 +60,8 @@ class Strategy(Indicator):
         self['_dd_rapid'] = (
                 (self['close'].pct_change(1, fill_method=None) <= (drawdown_threshold / 3)) |
                 (self['close'].pct_change(drawdown_rapid, fill_method=None) <= (drawdown_threshold / 2))
-        ).astype(bool).fillna(False)
-        self['_dd_occur'] = self['_dd_rapid'].rolling(window).any()
+        ).astype(int)
+        self['_dd_occur'] = self['_dd_rapid'].rolling(window).sum() == 1
 
         self['_is_macd_pos'] = self['macd_diff'] >= 0
         self['_macd_cross'] = (self['_is_macd_pos']) & (~self['_is_macd_pos'].shift(1).astype(bool))
