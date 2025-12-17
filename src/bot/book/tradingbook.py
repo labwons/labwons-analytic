@@ -103,12 +103,13 @@ class TradingBook:
         return
 
     def update(self):
+        self.book['signaled_time'] = self.book['signaled_time'].astype(str).str.replace("T", " ")
         for ticker in self.index:
             coin = Ticker(ticker=ticker)
             data = coin.ohlcv(interval='60minutes')
 
             s_price = self.loc[ticker, 'signaled_price']
-            s_time = datetime.strptime(self.loc[ticker, 'signaled_time'], '%Y-%m-%dT%H:%M:%S')
+            s_time = datetime.strptime(str(self.loc[ticker, 'signaled_time']), '%Y-%m-%d %H:%M:%S')
             for h in [1, 4, 12, 24, 36, 48, 60, 72]:
                 e_time = s_time + timedelta(hours=h)
                 if e_time.strftime('%Y-%m-%dT%H:%M:%S') not in data.index:

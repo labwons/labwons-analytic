@@ -32,6 +32,8 @@ class Strategy(Indicator):
         self,
         window:int=3
     ):
+        # Deprecated
+
         # 상승 추세 Zone 파악
         self['bb_in_zone'] = (self['close'] >= self['tr_upper']) & (self['close'] <= self['bb_upper'])
         self['bb_in_zone_window'] = self['bb_in_zone'].rolling(window).sum() == window
@@ -42,4 +44,34 @@ class Strategy(Indicator):
         del self['bb_in_zone_window']
         del self['bb_out_zone']
         return self['sig_up_trend'].astype(int).replace(0, None)
+
+    def drawdown_recover(
+        self,
+        basis:str='tp',
+        window:int=36,
+        drawdown_threshold:float=-0.1,
+        drawdown_recover_threshold:float=0.4,
+    ):
+        self['_dd_max'] = self[basis].rolling(window=window).max()
+        self['_dd_min'] = self[basis].rolling(window=window).min()
+        self['_dd_height'] = self['_dd_min'] / self['_dd_max'] - 1
+        self['_dd_recover'] = (self[basis] - self['_dd_min']) / (self['_dd_max'] - self['_dd_min'])
+
+        self['_is_macd_pos'] = self['macd_diff'] >= 0
+        self['_macd_cross'] = (self['_is_macd_pos']) & (~self['_is_macd_pos'].shift(1).astype(bool))
+
+        self['sig_drawdown_recover'] = (
+            (self['_dd_height'] <= drawdown_threshold) &
+            (self['_dd_recover'] <= drawdown_recover_threshold) &
+            self['_macd_cross']
+        )
+
+        del self['_dd_max']
+        del self['_dd_min']
+        del self['_dd_height']
+        del self['_dd_recover']
+        del self['_is_macd_pos']
+        del self['_macd_cross']
+
+        return self['sig_drawdown_recover'].astype(int).replace(0, None)
 

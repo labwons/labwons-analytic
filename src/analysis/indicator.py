@@ -51,6 +51,7 @@ class Indicator:
     def install(self):
         self.add_tp()
         self.add_bb()
+        self.add_macd()
         return
 
     def add_tp(self):
@@ -70,6 +71,25 @@ class Indicator:
             tr_upper=mid + (std / 2) * dev,
             tr_lower=mid - (std / 2) * dev,
             bb_width=((up - dn) / mid) * 100
+        )
+        return
+
+    def add_macd(
+        self,
+        basis:str='tp',
+        window_slow: int = 26,
+        window_fast: int = 12,
+        window_sign: int = 9,
+    ):
+        ema = lambda series, window: series.ewm(span=window).mean()
+        fast = ema(self[basis], window_fast)
+        slow = ema(self[basis], window_slow)
+        macd = fast - slow
+        sig = ema(macd, window_sign)
+        self._set_columns(
+            macd=macd,
+            macd_signal=sig,
+            macd_diff=macd - sig
         )
         return
 

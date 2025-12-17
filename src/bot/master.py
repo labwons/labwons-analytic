@@ -48,7 +48,19 @@ strategy.install()
 send = False
 book = TradingBook()
 for name, signal in [
-    ("Squeeze & Expand", strategy.squeeze_expand()),
+    ("Squeeze & Expand",
+     strategy.squeeze_expand(
+        window_width=100,
+        width_threshold=0.2,
+        window_volume=20,
+    )),
+    ("Drawdown Recover",
+     strategy.drawdown_recover(
+        basis='tp',
+        window=36,
+        drawdown_threshold=-0.1,
+        drawdown_recover_threshold=0.4,
+    )),
 ]:
     detect = signal.iloc[-1].dropna()
     if detect.empty:
