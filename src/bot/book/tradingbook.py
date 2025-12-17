@@ -127,9 +127,9 @@ class TradingBook:
         return
 
     def save(self):
-        keys = list(SCHEMA.keys())
-        keys.remove('ticker')
-        self[keys].to_json(self._filepath, orient="index")
+        # keys = list(SCHEMA.keys())
+        # keys.remove('ticker')
+        self.reset_index().to_json(self._filepath, orient="index")
         return
 
 if __name__ == "__main__":
