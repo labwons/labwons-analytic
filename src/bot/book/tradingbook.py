@@ -107,19 +107,19 @@ class TradingBook:
             coin = Ticker(ticker=ticker)
             data = coin.ohlcv(interval='60minutes')
 
-            s_price = book.loc[ticker, 'signaled_price']
-            s_time = datetime.strptime(book.loc[ticker, 'signaled_time'], '%Y-%m-%dT%H:%M:%S')
+            s_price = self.loc[ticker, 'signaled_price']
+            s_time = datetime.strptime(self.loc[ticker, 'signaled_time'], '%Y-%m-%dT%H:%M:%S')
             for h in [1, 4, 12, 24, 36, 48, 60, 72]:
                 e_time = s_time + timedelta(hours=h)
                 if e_time.strftime('%Y-%m-%dT%H:%M:%S') not in data.index:
                     continue
                 price_at_time = data.loc[e_time.strftime('%Y-%m-%dT%H:%M:%S'), 'close']
-                book.loc[ticker, f'yield_{h}h_from_detected'] = 100 * (price_at_time - s_price) / s_price
+                self.loc[ticker, f'yield_{h}h_from_detected'] = 100 * (price_at_time - s_price) / s_price
 
-            book.loc[ticker, 'current_price'] = curr = coin['trade_price']
-            book.loc[ticker, 'current_amount'] = data.iloc[-1]['amount']
-            book.loc[ticker, 'current_volume'] = data.iloc[-1]['volume']
-            book.loc[ticker, 'yield_ongoing'] = 100 * (curr - s_price) / s_price
+            self.loc[ticker, 'current_price'] = curr = coin['trade_price']
+            self.loc[ticker, 'current_amount'] = data.iloc[-1]['amount']
+            self.loc[ticker, 'current_volume'] = data.iloc[-1]['volume']
+            self.loc[ticker, 'yield_ongoing'] = 100 * (curr - s_price) / s_price
         return
 
     def save(self):
