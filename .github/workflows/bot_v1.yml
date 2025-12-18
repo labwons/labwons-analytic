@@ -17,12 +17,12 @@ on:
 #    - cron: '*/30 * * * *'  # 매 30분(간격)
 #    - cron: '*/30 6-23 * * *' # KST 15:00 ~ 익일 08:59  (UTC 06:00 ~ 23:59), 30분 간격
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - .github/workflows/bot_v1.yml
-#      - src/bot/master.py
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bot_v1.yml
+      - src/bot/master.py
 
 permissions:
   contents: write
