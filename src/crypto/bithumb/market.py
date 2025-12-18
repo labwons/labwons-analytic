@@ -100,11 +100,11 @@ class Market:
         """
         return self._fetch_tickers().join(self._fetch_warnings())
 
-    def update_baseline(self, interval: str) -> DataFrame:
+    def update_baseline(self, interval: str, to:str='') -> DataFrame:
         objs = {}
         for ticker in self.tickers.index:
             try:
-                objs[ticker] = Ticker(ticker).ohlcv(interval)
+                objs[ticker] = Ticker(ticker).ohlcv(interval, to=to)
             except KeyError:
                 self._failures.append(ticker)
                 continue
@@ -114,4 +114,3 @@ class Market:
     def reset_failures(self):
         self._failures = []
         return
-

@@ -9,8 +9,7 @@ import requests
 
 
 class Ticker:
-
-    url:str = "https://api.bithumb.com/v1"
+    url: str = "https://api.bithumb.com/v1"
     headers = {"accept": "application/json"}
     rename = {
         "candle_date_time_kst": "datetime",
@@ -39,7 +38,7 @@ class Ticker:
         return self._snap[item]
 
     @classmethod
-    def _fetch_(cls, url:str, **kwargs) -> Union[DataFrame, Series]:
+    def _fetch_(cls, url: str, **kwargs) -> Union[DataFrame, Series]:
         """
         url: https://api.bithumb.com 의 api 데이터 취득
         base url의 하위 주소를 입력하여 응답을 pandas Series 또는 DataFrame으로 변환
@@ -52,8 +51,8 @@ class Ticker:
             Union[Series, DataFrame] :
         """
         resp = requests \
-               .get(f"{cls.url}{url}", headers=cls.headers) \
-               .json()
+            .get(f"{cls.url}{url}", headers=cls.headers) \
+            .json()
         return Series(resp[0], **kwargs) if len(resp) == 1 else DataFrame(resp, **kwargs)
 
     @property
@@ -93,7 +92,7 @@ class Ticker:
     # @constrain('1minutes', '3minutes', '5minutes', '10minutes',
     #            '15minutes', '30minutes', '60minutes', '240minutes',
     #            '1days', '1weeks', '1months')
-    def ohlcv(self, interval:str) -> DataFrame:
+    def ohlcv(self, interval: str, to: str = '') -> DataFrame:
         """
                                  open	     high	      low	    close	      amount	     volume
         datetime
@@ -118,6 +117,9 @@ class Ticker:
             query = f'/candles/minutes/{interval.replace("minutes", "")}?market={self.ticker}&count=200'
         else:
             query = f'/candles/{interval[1:]}?market={self.ticker}&count=200'
+
+        if to:
+            query += f'&to={to}'
 
         data = self._fetch_(query)
         if isinstance(data, Series):
@@ -184,7 +186,7 @@ class Ticker:
         data['datetime'] = data['datetime'].dt.strftime("%Y-%m-%d %H:%M:%S")
         return data.set_index(keys='datetime')
 
-    def to_logger(self, logger:Logger):
+    def to_logger(self, logger: Logger):
         ticker = self.ticker.replace('KRW-', '')
         logger(f'TICKER: <a href="https://m.bithumb.com/react/trade/chart/{ticker}-KRW">{ticker}</a>')
         logger(f'  - 현재가: {self["trade_price"]}원')
