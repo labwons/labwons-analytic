@@ -1,11 +1,10 @@
 if not "Ticker" in globals():
     from src.crypto.bithumb.ticker import Ticker
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 from pandas import DataFrame
 from numpy import nan
 import pandas as pd
-import os
+import os, requests, io, certifi
 
 
 SCHEMA = {
@@ -53,7 +52,7 @@ class TradingBook:
 
     def __init__(self, readonly:bool=False):
         if readonly:
-            self.book = pd.read_json(
+            url = (
                 "https://raw.githubusercontent.com"
                 "/labwons"
                 "/labwons-analytic"
@@ -65,13 +64,20 @@ class TradingBook:
                 "/book"
                 "/book.json"
             )
+            try:
+                resp = requests.get(url, verify=certifi.where())
+            except requests.exceptions.SSLError:
+                resp = requests.get(url, verify=False)
+            self.book = pd.read_json(io.StringIO(resp.text), orient='index')
         else:
             if not os.path.isfile(self._filepath):
-                self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
+                self.book = DataFrame(columns=list(SCHEMA.keys()))
             else:
                 self.book = pd.read_json(self._filepath, orient="index")
                 if self.book.empty:
-                    self.book = DataFrame(columns=list(SCHEMA.keys())).set_index(keys='ticker')
+                    self.book = DataFrame(columns=list(SCHEMA.keys()))
+        if 'index' in self.book.columns:
+            self.book = self.book.rename(columns={'index':'ticker'}).set_index(keys='ticker')
         return
 
     def __repr__(self):
@@ -136,9 +142,9 @@ if __name__ == "__main__":
     from pandas import set_option
     set_option('display.expand_frame_repr', False)
 
-    book = TradingBook()
+    book = TradingBook(readonly=False)
     print(book)
 
-    book.drop(inplace=True, index = book[book.loc[:,"signal"] == "Drawdown Recover"].index)
-    print(book)
-    book.save()
+    # book.drop(inplace=True, index = book[book.loc[:,"signal"] == "Drawdown Recover"].index)
+    # print(book)
+    # book.save()
