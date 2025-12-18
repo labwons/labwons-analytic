@@ -41,72 +41,72 @@ logger(f'MKT: {market_time.strftime("%Y/%m/%d %H:%M")}')
 
 market.baseline.to_parquet(r'./baseline_sample.parquet', engine='pyarrow')
 
-# INSTALL STRATEGY
-strategy = Strategy(market.baseline)
-strategy.install()
-
-
-# REPORT SIGNALS
-send = False
-book = TradingBook()
-for name, signal in [
-    ("Squeeze & Expand",
-     strategy.squeeze_expand(
-        window_width=100,
-        width_threshold=0.2,
-        window_volume=20,
-    )),
-    ("Drawdown Recover",
-     strategy.drawdown_recover(
-        basis='tp',
-        window=36,
-        drawdown_threshold=-0.1,
-        drawdown_recover_threshold=0.3,
-        drawdown_rapid=3,
-    )),
-]:
-    detect = signal.iloc[-1].dropna()
-    if detect.empty:
-        continue
-
-    logger(f'<h1>{name}</h1>')
-    logger(f'---')
-    for n, ticker in enumerate(detect.index, start=1):
-        coin = Ticker(ticker=ticker)
-        coin.to_logger(logger)
-
-        baseline = market.baseline[ticker].loc[detect.name]
-        signaled_price = baseline['close']
-        signal_reported_price = coin['trade_price']
-        if abs(signal_reported_price / signaled_price - 1) >= 0.02:
-            continue
-
-        book.append(
-            ticker=ticker,
-            status='WATCH',
-            signal=name,
-            signaled_time=detect.name,
-            signaled_price=signaled_price,
-            signal_reported_price=signal_reported_price,
-            signaled_amount=baseline['amount'],
-            signaled_volume=baseline['volume'],
-        )
-    send = True
-
-book.update()
-book.save()
-
-# SEND E-MAIL
-if send:
-    mail = Mail()
-    mail.Subject = f'TRADER@v1 ON {kst.strftime("%Y/%m/%d %H:%M")}'
-    mail.content = mail.to_html(logger.to_html())
-    mail.To = ",".join([
-        "jhlee_0319@naver.com",
-        # "ghost3009@naver.com"
-    ])
-    mail.send("html", "utf-8")
-
-else:
-    logger('NO SIGNALS DETECTED ... SYSTEM ABORT')
+# # INSTALL STRATEGY
+# strategy = Strategy(market.baseline)
+# strategy.install()
+#
+#
+# # REPORT SIGNALS
+# send = False
+# book = TradingBook()
+# for name, signal in [
+#     ("Squeeze & Expand",
+#      strategy.squeeze_expand(
+#         window_width=100,
+#         width_threshold=0.2,
+#         window_volume=20,
+#     )),
+#     ("Drawdown Recover",
+#      strategy.drawdown_recover(
+#         basis='tp',
+#         window=36,
+#         drawdown_threshold=-0.1,
+#         drawdown_recover_threshold=0.3,
+#         drawdown_rapid=3,
+#     )),
+# ]:
+#     detect = signal.iloc[-1].dropna()
+#     if detect.empty:
+#         continue
+#
+#     logger(f'<h1>{name}</h1>')
+#     logger(f'---')
+#     for n, ticker in enumerate(detect.index, start=1):
+#         coin = Ticker(ticker=ticker)
+#         coin.to_logger(logger)
+#
+#         baseline = market.baseline[ticker].loc[detect.name]
+#         signaled_price = baseline['close']
+#         signal_reported_price = coin['trade_price']
+#         if abs(signal_reported_price / signaled_price - 1) >= 0.02:
+#             continue
+#
+#         book.append(
+#             ticker=ticker,
+#             status='WATCH',
+#             signal=name,
+#             signaled_time=detect.name,
+#             signaled_price=signaled_price,
+#             signal_reported_price=signal_reported_price,
+#             signaled_amount=baseline['amount'],
+#             signaled_volume=baseline['volume'],
+#         )
+#     send = True
+#
+# book.update()
+# book.save()
+#
+# # SEND E-MAIL
+# if send:
+#     mail = Mail()
+#     mail.Subject = f'TRADER@v1 ON {kst.strftime("%Y/%m/%d %H:%M")}'
+#     mail.content = mail.to_html(logger.to_html())
+#     mail.To = ",".join([
+#         "jhlee_0319@naver.com",
+#         # "ghost3009@naver.com"
+#     ])
+#     mail.send("html", "utf-8")
+#
+# else:
+#     logger('NO SIGNALS DETECTED ... SYSTEM ABORT')
 

@@ -68,7 +68,7 @@ class Strategy(Indicator):
         ).astype(int)
         self['dd_occur'] = self['dd_rapid'].rolling(window).sum() == 1
 
-        self['is_macd_pos'] = (self['macd_diff'] >= 0).astype(bool)
+        self['is_macd_pos'] = (self['macd_diff'] >= 0).astype(bool).fillna(False)
         self['macd_cross'] = (self['is_macd_pos']) & (~self['is_macd_pos'].shift(1))
 
         self['sig_drawdown_recover'] = (
