@@ -39,6 +39,8 @@ logger(f"UPDATE BASELINE ... {int(elapsed // 60)}m {int(elapsed % 60)}s")
 logger(f'KST: {kst.strftime("%Y/%m/%d %H:%M")}')
 logger(f'MKT: {market_time.strftime("%Y/%m/%d %H:%M")}')
 
+market.baseline.to_parquet(r'./baseline_sample.parquet', engine='pyarrow')
+
 # INSTALL STRATEGY
 strategy = Strategy(market.baseline)
 strategy.install()

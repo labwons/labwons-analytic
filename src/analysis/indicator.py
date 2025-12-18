@@ -9,9 +9,7 @@ class Indicator:
         return
 
     def __call__(self, *tickers) -> DataFrame:
-        idx = pd.IndexSlice
-        selector = list(tickers)
-        return self.data.loc[:, idx[selector, :]]
+        return self.data.loc[:, pd.IndexSlice[list(tickers), :]]
 
     def __iter__(self):
         for col in self.data.columns.get_level_values(0).unique():

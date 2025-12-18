@@ -22,6 +22,7 @@ on:
       - main
     paths:
       - .github/workflows/bot_v1.yml
+      - src/bot/master.py
 
 permissions:
   contents: write
