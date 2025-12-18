@@ -48,30 +48,29 @@ class Strategy(Indicator):
         self,
         basis:str='tp',
         window:int=36,
-        drawdown_threshold:float=-0.1,
+        allowance:float=-0.1,
         drawdown_recover_threshold:float=0.3,
         drawdown_rapid:int=3,
         describe:bool=True,
     ) -> DataFrame:
-        self['dd_max'] = self[basis].rolling(window=window).max()
-        self['dd_min'] = self[basis].rolling(window=window).min()
-        self['dd_rapid'] = (
-                (self['close'].pct_change(1, fill_method=None) <= (drawdown_threshold / 3)) |
-                (self['close'].pct_change(drawdown_rapid, fill_method=None) <= (drawdown_threshold / 2))
-        ).astype(int)
+
         self['dd_occur'] = (
-            # 급락 감지
+            # 급락 감지: 낙폭 변화량 허용치 초과 경우가 범위 내 1회 이상 존재 시
             (
-                # 종가 기준 1봉 변화량이 허용 낙폭을 넘어갈 때
-                (self['close'].pct_change(1, fill_method=None) <= (drawdown_threshold / 3)) |
-                # 종가 기준 n봉
-            )
-            
-            
-            
-           (self['dd_rapid'].rolling(window).sum() >= 1) &
-           ((self['dd_min'] / self['dd_max'] - 1) <= drawdown_threshold) &
-           ((self['close'] > self['tr_upper']).astype(int).rolling(window).sum() >= 1)
+                # 직전 종가의 허용 기준점
+                (self['close'] >= self['mid']).shift(1).astype(bool) &
+                (
+                    # 종가 기준 1봉 변화량의 허용 낙폭 초과 시
+                    (self['close'].pct_change(1, fill_method=None) <= (allowance / 3)) |
+                    # 종가 기준 n봉 변화량의 허용 낙폭 초과 시
+                    (self['close'].pct_change(drawdown_rapid, fill_method=None) <= (allowance / 2))
+                )
+
+            ).astype(int).rolling(window).sum() >= 1 &
+
+            # 범위 내 최대 낙폭의 허용치 초과
+            ((self[basis].rolling(window).min() / self[basis].rolling(window).max() - 1) <= allowance)
+
         )
         self['dd_recover'] = (self[basis] - self['dd_min']) / (self['dd_max'] - self['dd_min'])
 
